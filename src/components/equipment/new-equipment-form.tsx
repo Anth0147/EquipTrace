@@ -28,7 +28,6 @@ export default function NewEquipmentForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
-  const scannerRef = React.useRef<Html5QrcodeScanner | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,55 +38,48 @@ export default function NewEquipmentForm() {
     },
   });
 
-  const cleanupScanner = React.useCallback(() => {
-    if (scannerRef.current) {
-        try {
-            scannerRef.current.clear();
-            scannerRef.current = null;
-        } catch (error) {
-            // console.error("Failed to clear scanner", error);
-        }
-    }
-  }, []);
-
-  const handleOpenChange = (open: boolean) => {
-    setIsScannerOpen(open);
-    if (!open) {
-      cleanupScanner();
-    }
-  };
-
   React.useEffect(() => {
-    if (isScannerOpen) {
-      if (!document.getElementById(SCANNER_REGION_ID)) return;
-      
-      const scanner = new Html5QrcodeScanner(
-        SCANNER_REGION_ID,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        false
-      );
-      scannerRef.current = scanner;
-
-      const onScanSuccess = (decodedText: string) => {
-        form.setValue('itemSerialNumber', decodedText);
-        toast({
-          title: 'Código escaneado',
-          description: `Número de serie detectado: ${decodedText}`,
-        });
-        handleOpenChange(false);
-      };
-
-      const onScanFailure = (error: any) => {
-        // console.warn(`Code scan error = ${error}`);
-      };
-      
-      scanner.render(onScanSuccess, onScanFailure);
+    if (!isScannerOpen) {
+      return;
     }
 
-    return () => {
-      cleanupScanner();
+    // Asegurarse de que el elemento del DOM existe antes de crear el escáner
+    const scannerRegion = document.getElementById(SCANNER_REGION_ID);
+    if (!scannerRegion) {
+        console.error(`Element with id ${SCANNER_REGION_ID} not found.`);
+        return;
+    }
+
+    const html5QrcodeScanner = new Html5QrcodeScanner(
+      SCANNER_REGION_ID,
+      { fps: 10, qrbox: { width: 250, height: 250 } },
+      /* verbose= */ false
+    );
+
+    const onScanSuccess = (decodedText: string) => {
+      form.setValue('itemSerialNumber', decodedText);
+      toast({
+        title: 'Código escaneado',
+        description: `Número de serie detectado: ${decodedText}`,
+      });
+      setIsScannerOpen(false); // Cierra el diálogo al escanear
     };
-  }, [isScannerOpen, form, toast, cleanupScanner]);
+
+    const onScanFailure = (error: any) => {
+      // No hacer nada en caso de fallo, para que el usuario pueda seguir intentando
+    };
+
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+
+    // Función de limpieza para detener el escáner
+    return () => {
+      if (html5QrcodeScanner && html5QrcodeScanner.getState() !== 2 /* NOT_STARTED */) {
+         html5QrcodeScanner.clear().catch(error => {
+            console.error("Failed to clear html5QrcodeScanner.", error);
+         });
+      }
+    };
+  }, [isScannerOpen, form, toast]);
 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -98,7 +90,11 @@ export default function NewEquipmentForm() {
         title: 'Equipo Añadido',
         description: `Se ha añadido correctamente ${result.data.itemType}.`,
       });
-      form.reset();
+      form.reset({
+        itemType: '',
+        itemSerialNumber: '',
+        quantity: 1
+      });
     } else {
       toast({
         variant: 'destructive',
@@ -135,7 +131,7 @@ export default function NewEquipmentForm() {
                 <FormControl>
                   <Input placeholder="Introduzca el número de serie único" {...field} />
                 </FormControl>
-                <Dialog open={isScannerOpen} onOpenChange={handleOpenChange}>
+                <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
                     <Button type="button" variant="outline" size="icon" onClick={() => setIsScannerOpen(true)}>
                         <Barcode className="h-4 w-4" />
                         <span className="sr-only">Escanear Código</span>
@@ -167,7 +163,7 @@ export default function NewEquipmentForm() {
               <FormItem>
                 <FormLabel>Cantidad</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" {...field} onChange={event => field.onChange(+event.target.value)} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
