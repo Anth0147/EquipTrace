@@ -40,12 +40,16 @@ export default function NewEquipmentForm() {
   });
 
   React.useEffect(() => {
-    // Importar dinámicamente la librería solo en el cliente
-    if (!isScannerOpen || scannerRef.current) {
+    if (!isScannerOpen) {
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(error => {
+          console.error("Failed to clear html5QrcodeScanner.", error);
+        });
+        scannerRef.current = null;
+      }
       return;
     }
 
-    // Usar un timeout para asegurar que el DOM del Dialog esté montado
     const timer = setTimeout(() => {
         import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
             const onScanSuccess: QrCodeSuccessCallback = (decodedText) => {
@@ -60,6 +64,12 @@ export default function NewEquipmentForm() {
             const onScanFailure = (error: any) => {
                 // Silenciar errores comunes de 'no se encontró QR'
             };
+
+            const scannerRegion = document.getElementById(SCANNER_REGION_ID);
+            if (!scannerRegion) {
+                console.error(`Element with id ${SCANNER_REGION_ID} not found.`);
+                return;
+            }
     
             const scanner = new Html5QrcodeScanner(
                 SCANNER_REGION_ID,
