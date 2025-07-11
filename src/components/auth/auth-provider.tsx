@@ -2,12 +2,9 @@
 'use client';
 
 import React, { createContext, useEffect, useState, useCallback } from 'react';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 import type { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
-  user: User | null;
   userProfile: UserProfile | null;
   loading: boolean;
   setPreviewUser: (profile: UserProfile) => void;
@@ -15,7 +12,6 @@ interface AuthContextType {
 }
 
 export const AuthContext = createContext<AuthContextType>({
-  user: null,
   userProfile: null,
   loading: true,
   setPreviewUser: () => {},
@@ -23,51 +19,38 @@ export const AuthContext = createContext<AuthContextType>({
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Function to set a local "preview" user
   const setPreviewUser = useCallback((profile: UserProfile) => {
-    setUser(null); // Ensure no real user is set
     setUserProfile(profile);
+    sessionStorage.setItem('userProfile', JSON.stringify(profile)); // Persist to session storage
     setLoading(false);
   }, []);
 
+  // Function to log out the local "preview" user
   const logoutPreviewUser = useCallback(() => {
-    setUser(null);
     setUserProfile(null);
+    sessionStorage.removeItem('userProfile'); // Remove from session storage
+  }, []);
+  
+  // Check for a logged-in user in session storage on initial load
+  useEffect(() => {
+    try {
+        const storedUserProfile = sessionStorage.getItem('userProfile');
+        if (storedUserProfile) {
+            setUserProfile(JSON.parse(storedUserProfile));
+        }
+    } catch (error) {
+        console.error("Could not parse user profile from session storage", error);
+        sessionStorage.removeItem('userProfile');
+    }
+    setLoading(false);
   }, []);
 
-  useEffect(() => {
-    // If a preview user is set, don't run firebase auth
-    if (userProfile && userProfile.uid.startsWith('preview-')) {
-      setLoading(false);
-      return;
-    }
 
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setLoading(true);
-      if (firebaseUser) {
-        setUser(firebaseUser);
-        // We are not using Firestore for user profiles right now.
-        // You can re-enable this if you set up Firestore.
-        setUserProfile({
-          uid: firebaseUser.uid,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName,
-          role: 'technician', // default role
-        });
-      } else {
-        setUser(null);
-        setUserProfile(null);
-      }
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, [userProfile]);
-
-  const value = { user, userProfile, loading, setPreviewUser, logoutPreviewUser };
+  const value = { userProfile, loading, setPreviewUser, logoutPreviewUser };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -30,7 +30,6 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Icons } from '@/components/icons';
-import { auth } from '@/lib/firebase';
 import { EquipmentProvider } from '@/context/EquipmentContext';
 
 const NavLink = ({ href, icon: Icon, children, isCollapsed }: { href: string; icon: React.ElementType; children: React.ReactNode; isCollapsed: boolean }) => (
@@ -51,7 +50,7 @@ const NavLink = ({ href, icon: Icon, children, isCollapsed }: { href: string; ic
 );
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, userProfile, loading, logoutPreviewUser } = useAuth();
+  const { userProfile, loading, logoutPreviewUser } = useAuth();
   const router = useRouter();
   const [isCollapsed, setIsCollapsed] = React.useState(false);
 
@@ -74,11 +73,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   const handleLogout = async () => {
-    if (userProfile?.uid.startsWith('preview-')) {
-      logoutPreviewUser();
-    } else {
-      await auth.signOut();
-    }
+    logoutPreviewUser();
     router.push('/');
   };
 
@@ -172,7 +167,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{userProfile?.name || user?.email}</DropdownMenuLabel>
+                <DropdownMenuLabel>{userProfile?.name || userProfile?.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem disabled>Settings</DropdownMenuItem>
                 <DropdownMenuItem disabled>Support</DropdownMenuItem>

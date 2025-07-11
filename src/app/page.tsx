@@ -6,9 +6,7 @@ import { useRouter } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { signInWithEmailAndPassword } from 'firebase/auth';
 
-import { auth } from '@/lib/firebase';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +28,7 @@ const testUsers = {
 };
 
 export default function LoginPage() {
-  const { user, loading, setPreviewUser } = useAuth();
+  const { userProfile, loading, setPreviewUser } = useAuth();
   const router = useRouter();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
@@ -44,15 +42,14 @@ export default function LoginPage() {
   });
 
   React.useEffect(() => {
-    if (user) {
+    if (userProfile) {
       router.push('/dashboard');
     }
-  }, [user, router]);
+  }, [userProfile, router]);
 
   const onSubmit = async (data: LoginFormValues) => {
     setIsSubmitting(true);
     
-    // Check for test users
     const isTestUser = data.email in testUsers;
     const isTestPassword = data.password === 'pass123';
 
@@ -69,29 +66,18 @@ export default function LoginPage() {
         description: "Welcome back! You're being redirected...",
       });
       router.push('/dashboard');
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      await signInWithEmailAndPassword(auth, data.email, data.password);
-      toast({
-        title: 'Login Successful',
-        description: "Welcome back! You're being redirected...",
-      });
-      // The useEffect hook will handle redirection
-    } catch (error: any) {
-      toast({
+    } else {
+       toast({
         variant: 'destructive',
         title: 'Login Failed',
         description: 'Invalid credentials. Please try again.',
       });
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setIsSubmitting(false);
   };
 
-  if (loading || user) {
+  if (loading || userProfile) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
         <Icons.spinner className="h-8 w-8 animate-spin" />
