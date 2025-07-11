@@ -34,8 +34,6 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
-
-  // Separate ref for the scanner instance
   const scannerRef = React.useRef<Html5QrcodeScanner | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -49,7 +47,6 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
 
   React.useEffect(() => {
     if (isScannerOpen) {
-      // Delay to ensure the dialog is rendered
       const timer = setTimeout(() => {
         const scannerRegion = document.getElementById(SCANNER_REGION_ID);
         if (!scannerRegion) {
@@ -57,7 +54,6 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
           return;
         }
 
-        // Avoid creating a new scanner if one already exists
         if (scannerRef.current) {
           return;
         }
@@ -69,11 +65,7 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
               title: 'Código escaneado',
               description: `Número de serie detectado: ${decodedText}`,
             });
-            setIsScannerOpen(false); // This will trigger the cleanup effect
-          };
-
-          const onScanFailure = (error: any) => {
-            // ignore
+            setIsScannerOpen(false);
           };
 
           const newScanner = new Html5QrcodeScanner(
@@ -82,22 +74,16 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
             false
           );
 
-          newScanner.render(onScanSuccess, onScanFailure);
+          newScanner.render(onScanSuccess, (error) => {});
           scannerRef.current = newScanner;
 
         }).catch(err => {
           console.error("Failed to load html5-qrcode library", err);
-          toast({
-            variant: 'destructive',
-            title: 'Error de Escáner',
-            description: 'No se pudo cargar la biblioteca de escaneo. Por favor, refresca la página.',
-          });
         });
       }, 300);
 
       return () => clearTimeout(timer);
     } else {
-      // Cleanup when the dialog is closed
       if (scannerRef.current) {
         scannerRef.current.clear().catch(error => {
           console.error("Failed to clear html5QrcodeScanner.", error);
@@ -115,17 +101,16 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
       if (result.success && result.data) {
         toast({
           title: 'Equipo Añadido',
-          description: `Se ha añadido correctamente ${result.data.itemType}.`,
+          description: `Se ha añadido correctamente ${result.data.type}.`,
         });
         
-        // This is a simplified equipment object for the callback
         const newEquipment: Equipment = {
             id: result.data.id,
-            type: values.itemType,
-            serialNumber: values.itemSerialNumber,
-            quantity: values.quantity,
+            type: result.data.type,
+            serialNumber: result.data.serialNumber,
+            quantity: result.data.quantity,
             status: 'available',
-            createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 } // Approximate timestamp
+            createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 } 
         };
         onEquipmentAdded(newEquipment);
         form.reset({

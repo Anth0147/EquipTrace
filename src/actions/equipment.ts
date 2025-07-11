@@ -38,7 +38,9 @@ export async function addEquipment(input: AddEquipmentInput) {
       success: true,
       data: {
         id: newEquipmentDocRef.id,
-        itemType: itemType,
+        type: itemType,
+        serialNumber: itemSerialNumber,
+        quantity: quantity,
       },
     };
   } catch (error) {
