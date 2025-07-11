@@ -15,6 +15,8 @@ import { Icons } from '@/components/icons';
 import { addEquipment } from '@/actions/equipment';
 import { Barcode } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
+import type { Equipment } from '@/lib/types';
+
 
 const formSchema = z.object({
   itemType: z.string().min(2, 'El tipo de equipo debe tener al menos 2 caracteres.'),
@@ -24,10 +26,16 @@ const formSchema = z.object({
 
 const SCANNER_REGION_ID = 'html5qr-code-full-region';
 
-export default function NewEquipmentForm() {
+interface NewEquipmentFormProps {
+  onEquipmentAdded: (equipment: Equipment) => void;
+}
+
+export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormProps) {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
+
+  // Separate ref for the scanner instance
   const scannerRef = React.useRef<Html5QrcodeScanner | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -40,66 +48,63 @@ export default function NewEquipmentForm() {
   });
 
   React.useEffect(() => {
-    if (!isScannerOpen) {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(error => {
-          console.error("Failed to clear html5QrcodeScanner.", error);
-        });
-        scannerRef.current = null;
-      }
-      return;
-    }
-
-    // Retraso para asegurar que el DOM esté listo
-    const timer = setTimeout(() => {
-      import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
-        const onScanSuccess = (decodedText: string) => {
-          form.setValue('itemSerialNumber', decodedText);
-          toast({
-            title: 'Código escaneado',
-            description: `Número de serie detectado: ${decodedText}`,
-          });
-          setIsScannerOpen(false);
-        };
-
-        const onScanFailure = (error: any) => {
-          // No hacer nada en caso de fallo, para evitar logs innecesarios
-        };
-        
+    if (isScannerOpen) {
+      // Delay to ensure the dialog is rendered
+      const timer = setTimeout(() => {
         const scannerRegion = document.getElementById(SCANNER_REGION_ID);
         if (!scannerRegion) {
-            console.error(`Element with id ${SCANNER_REGION_ID} not found.`);
-            return;
+          console.error(`Element with id ${SCANNER_REGION_ID} not found.`);
+          return;
         }
 
-        const scanner = new Html5QrcodeScanner(
-          SCANNER_REGION_ID,
-          { fps: 10, qrbox: { width: 250, height: 250 } },
-          false
-        );
+        // Avoid creating a new scanner if one already exists
+        if (scannerRef.current) {
+          return;
+        }
 
-        scanner.render(onScanSuccess, onScanFailure);
-        scannerRef.current = scanner;
+        import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
+          const onScanSuccess = (decodedText: string) => {
+            form.setValue('itemSerialNumber', decodedText);
+            toast({
+              title: 'Código escaneado',
+              description: `Número de serie detectado: ${decodedText}`,
+            });
+            setIsScannerOpen(false); // This will trigger the cleanup effect
+          };
 
-      }).catch(err => {
-        console.error("Failed to load html5-qrcode library", err);
-        toast({
-          variant: 'destructive',
-          title: 'Error de Escáner',
-          description: 'No se pudo cargar la biblioteca de escaneo. Por favor, refresca la página.',
+          const onScanFailure = (error: any) => {
+            // ignore
+          };
+
+          const newScanner = new Html5QrcodeScanner(
+            SCANNER_REGION_ID,
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            false
+          );
+
+          newScanner.render(onScanSuccess, onScanFailure);
+          scannerRef.current = newScanner;
+
+        }).catch(err => {
+          console.error("Failed to load html5-qrcode library", err);
+          toast({
+            variant: 'destructive',
+            title: 'Error de Escáner',
+            description: 'No se pudo cargar la biblioteca de escaneo. Por favor, refresca la página.',
+          });
         });
-      });
-    }, 300); // 300ms de retraso
+      }, 300);
 
-    return () => {
-      clearTimeout(timer);
+      return () => clearTimeout(timer);
+    } else {
+      // Cleanup when the dialog is closed
       if (scannerRef.current) {
         scannerRef.current.clear().catch(error => {
           console.error("Failed to clear html5QrcodeScanner.", error);
         });
         scannerRef.current = null;
       }
-    };
+    }
   }, [isScannerOpen, form, toast]);
 
 
@@ -112,7 +117,23 @@ export default function NewEquipmentForm() {
           title: 'Equipo Añadido',
           description: `Se ha añadido correctamente ${result.data.itemType}.`,
         });
-        form.reset();
+        
+        // This is a simplified equipment object for the callback
+        const newEquipment: Equipment = {
+            id: result.data.id,
+            type: values.itemType,
+            serialNumber: values.itemSerialNumber,
+            quantity: values.quantity,
+            status: 'available',
+            createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 } // Approximate timestamp
+        };
+        onEquipmentAdded(newEquipment);
+        form.reset({
+            itemType: '',
+            itemSerialNumber: '',
+            quantity: 1,
+        });
+
       } else {
         toast({
           variant: 'destructive',
@@ -189,7 +210,7 @@ export default function NewEquipmentForm() {
               <FormItem>
                 <FormLabel>Cantidad</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} />
+                  <Input type="number" {...field} onChange={e => field.onChange(parseInt(e.target.value, 10) || 1)} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
