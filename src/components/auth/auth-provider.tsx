@@ -4,8 +4,6 @@
 import React, { createContext, useEffect, useState, useCallback } from 'react';
 import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import type { UserProfile } from '@/lib/types';
 
 interface AuthContextType {
@@ -51,13 +49,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(true);
       if (firebaseUser) {
         setUser(firebaseUser);
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        if (userDoc.exists()) {
-          setUserProfile(userDoc.data() as UserProfile);
-        } else {
-          setUserProfile(null);
-        }
+        // We are not using Firestore for user profiles right now.
+        // You can re-enable this if you set up Firestore.
+        setUserProfile({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+          role: 'technician', // default role
+        });
       } else {
         setUser(null);
         setUserProfile(null);
