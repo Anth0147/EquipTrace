@@ -4,7 +4,9 @@ import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import type { Html5QrcodeScanner, Html5QrcodeError, Html5QrcodeResult } from 'html5-qrcode';
+// The type-only import was causing issues with the dynamic import later.
+// It's safer to remove it and let TypeScript infer types or use `any` if needed for robustness.
+// import type { Html5QrcodeScanner, Html5QrcodeError, Html5QrcodeResult } from 'html5-qrcode';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -32,7 +34,7 @@ export default function NewEquipmentForm() {
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
   
   // Store the scanner instance in a ref to avoid re-creating it
-  const scannerRef = React.useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = React.useRef<any | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -47,14 +49,14 @@ export default function NewEquipmentForm() {
     if (isScannerOpen) {
       // Dynamically import the library only when needed on the client
       import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
-        if (!scannerRef.current) {
+        if (!scannerRef.current && document.getElementById(SCANNER_REGION_ID)) {
           const scanner = new Html5QrcodeScanner(
             SCANNER_REGION_ID,
             { fps: 10, qrbox: { width: 250, height: 250 } },
             /* verbose= */ false
           );
 
-          const onScanSuccess = (decodedText: string, result: Html5QrcodeResult) => {
+          const onScanSuccess = (decodedText: string, result: any) => {
             form.setValue('itemSerialNumber', decodedText);
             toast({
               title: 'Código escaneado',
@@ -63,7 +65,7 @@ export default function NewEquipmentForm() {
             handleCloseScanner();
           };
 
-          const onScanFailure = (error: Html5QrcodeError) => {
+          const onScanFailure = (error: any) => {
               // console.warn(`Code scan error = ${error}`);
           };
 
@@ -84,11 +86,12 @@ export default function NewEquipmentForm() {
     return () => {
       handleCloseScanner();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isScannerOpen]); // Rerun effect when scanner dialog opens
 
   const handleCloseScanner = () => {
     if (scannerRef.current) {
-      scannerRef.current.clear().catch(error => {
+      scannerRef.current.clear().catch((error: any) => {
         // This can sometimes fail if the scanner is already gone.
         // console.error("Failed to clear html5-qrcode-scanner.", error);
       });
