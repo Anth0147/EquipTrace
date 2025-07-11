@@ -76,7 +76,8 @@ export default function EquipmentPage() {
         drawText(title, margin, y, { font: boldFont, size: 12 });
         y -= 25;
 
-        drawText(`En la ciudad de Lima, a los ${dateStr}, se deja constancia de lo siguiente:`, margin, y);
+        const city = template === 'scrap' ? 'Trujillo' : 'Lima';
+        drawText(`En la ciudad de ${city}, a los ${dateStr}, se deja constancia de lo siguiente:`, margin, y);
         y -= 25;
 
         if (template === 'delivery' || template === 'return') {
@@ -90,11 +91,11 @@ export default function EquipmentPage() {
         } else { // scrap
              drawText('ENTREGADO POR:', margin, y, { font: boldFont });
             y -= 15;
-            drawText('Nombre: [NOMBRE_TECNICO O RESPONSABLE]', margin, y);
+            drawText('Nombre: ', margin, y);
             y -= 15;
-            drawText('Cargo: [Técnico / Supervisor]', margin, y);
+            drawText('Cargo: ', margin, y);
             y -= 15;
-            drawText('DNI: [DNI]', margin, y);
+            drawText('DNI: ', margin, y);
         }
         y -= 25;
 
@@ -136,18 +137,19 @@ export default function EquipmentPage() {
 
         drawText('OBSERVACIONES:', margin, y, { font: boldFont });
         y -= 15;
-        drawText('[Sin observaciones]', margin, y);
+        const observations = template === 'scrap' ? '' : '[Sin observaciones]';
+        drawText(observations, margin, y);
         y -= 40;
 
         // Signatures
         const sig1Label = template === 'delivery' || template === 'scrap' ? 'FIRMA DE ENTREGA:' : 'FIRMA DE DEVOLUCIÓN:';
-        const sig2Label = template === 'delivery' ? 'FIRMA DE ENTREGA:' : 'FIRMA DE RECEPCIÓN:';
+        const sig2Label = 'FIRMA DE RECEPCIÓN:';
 
-        const sig1Name = template === 'scrap' ? '[NOMBRE_ENTREGANTE]' : '[NOMBRE_TECNICO]';
-        const sig2Name = template === 'delivery' ? '[NOMBRE_RESPONSABLE]' : '[RESPONSABLE DE ALMACÉN]';
+        const sig1Name = template === 'delivery' ? '[NOMBRE_TECNICO]' : template === 'scrap' ? '' : '[NOMBRE_TECNICO]';
+        const sig2Name = template === 'delivery' ? '[NOMBRE_RESPONSABLE]' : template === 'scrap' ? '' : '[RESPONSABLE DE ALMACÉN]';
 
-        const sig1DNI = template === 'scrap' ? 'DNI: [DNI]' : 'DNI: [DNI_TECNICO]';
-        const sig2DNI = 'DNI: [DNI_RESPONSABLE]';
+        const sig1DNI = template === 'delivery' ? 'DNI: [DNI_TECNICO]' : template === 'scrap' ? 'DNI: ' : 'DNI: [DNI_TECNICO]';
+        const sig2DNI = template === 'scrap' ? 'DNI: ' : 'DNI: [DNI_RESPONSABLE]';
 
         drawText(sig1Label, margin, y);
         drawText(sig2Label, width / 2 + 20, y);
