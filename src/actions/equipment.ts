@@ -1,14 +1,15 @@
+
 'use server';
 
 import { z } from 'zod';
-import { collection, addDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { generateItemTags, GenerateItemTagsInput, GenerateItemTagsOutput } from '@/ai/flows/generate-item-tags';
 import { revalidatePath } from 'next/cache';
 
 const AddEquipmentSchema = z.object({
   itemType: z.string().min(2),
   itemSerialNumber: z.string().min(5),
+  quantity: z.number().default(1),
 });
 
 type AddEquipmentInput = z.infer<typeof AddEquipmentSchema>;
@@ -20,50 +21,29 @@ export async function addEquipment(input: AddEquipmentInput) {
       return { success: false, error: 'Invalid input.' };
     }
 
-    const { itemType, itemSerialNumber } = validation.data;
+    const { itemType, itemSerialNumber, quantity } = validation.data;
 
-    // 1. Add base equipment data to Firestore
     const equipmentCollection = collection(db, 'equipment');
     const newEquipmentDocRef = await addDoc(equipmentCollection, {
       type: itemType,
-      model: '', // Model is no longer provided
       serialNumber: itemSerialNumber,
-      description: '', // Description is no longer provided
-      barcode: '', // Barcode would be added here
+      quantity: quantity,
       status: 'available',
-      tags: [],
       createdAt: serverTimestamp(),
+      // Fields no longer used
+      model: '', 
+      description: '',
+      barcode: '',
+      tags: [],
     });
-
-    // 2. Generate tags using the GenAI flow
-    let tags: string[] = [];
-    try {
-      const aiInput: GenerateItemTagsInput = {
-        itemType,
-        itemSerialNumber,
-      };
-      const aiOutput: GenerateItemTagsOutput = await generateItemTags(aiInput);
-      tags = aiOutput.tags;
-
-      // 3. Update the document with the generated tags
-      await updateDoc(newEquipmentDocRef, {
-        tags: tags,
-      });
-    } catch (aiError) {
-      console.error('AI tag generation failed:', aiError);
-      // Don't fail the whole operation if AI fails, just log it.
-      // The equipment is still saved.
-    }
     
-    // Revalidate path to show new equipment in the list
     revalidatePath('/dashboard/equipment');
 
     return {
       success: true,
       data: {
         id: newEquipmentDocRef.id,
-        model: itemType, // Return itemType as model for the toast
-        tags: tags,
+        model: itemType,
       },
     };
   } catch (error) {
