@@ -6,13 +6,10 @@ import NewEquipmentForm from '@/components/equipment/new-equipment-form';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { Equipment } from '@/lib/types';
+import { useEquipment } from '@/context/EquipmentContext';
 
 export default function NewEquipmentPage() {
-  const [recentlyAdded, setRecentlyAdded] = React.useState<Equipment[]>([]);
-
-  const handleEquipmentAdded = (newEquipment: Equipment) => {
-    setRecentlyAdded((prev) => [newEquipment, ...prev]);
-  };
+  const { recentlyAdded } = useEquipment();
 
   return (
     <div className="mx-auto grid max-w-4xl flex-1 auto-rows-max gap-4">
@@ -24,15 +21,15 @@ export default function NewEquipmentPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <NewEquipmentForm onEquipmentAdded={handleEquipmentAdded} />
+          <NewEquipmentForm />
         </CardContent>
       </Card>
       
       {recentlyAdded.length > 0 && (
         <Card>
             <CardHeader>
-                <CardTitle>Recently Added</CardTitle>
-                <CardDescription>Items added in this session.</CardDescription>
+                <CardTitle>Recently Added (This Session)</CardTitle>
+                <CardDescription>Items you've added in this session.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>

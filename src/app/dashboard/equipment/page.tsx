@@ -3,10 +3,8 @@
 
 import Link from 'next/link';
 import { PlusCircle, File } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { useEquipment } from '@/context/EquipmentContext';
 
-import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -14,22 +12,7 @@ import type { Equipment } from '@/lib/types';
 import { Icons } from '@/components/icons';
 
 export default function EquipmentPage() {
-  const [equipment, setEquipment] = useState<Equipment[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const q = query(collection(db, "equipment"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const items: Equipment[] = [];
-      querySnapshot.forEach((doc) => {
-        items.push({ id: doc.id, ...doc.data() } as Equipment);
-      });
-      setEquipment(items);
-      setLoading(false);
-    });
-
-    return () => unsubscribe();
-  }, []);
+  const { equipmentList, loading } = useEquipment();
 
   return (
     <Card>
@@ -71,14 +54,14 @@ export default function EquipmentPage() {
                   <Icons.spinner className="h-6 w-6 animate-spin mx-auto" />
                 </TableCell>
               </TableRow>
-            ) : equipment.length === 0 ? (
+            ) : equipmentList.length === 0 ? (
                <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
-                  No equipment found.
+                  No equipment found. Add some in the "Add Item" page.
                 </TableCell>
               </TableRow>
             ) : (
-              equipment.map((item) => (
+              equipmentList.map((item: Equipment) => (
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.type}</TableCell>
                   <TableCell>{item.serialNumber}</TableCell>

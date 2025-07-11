@@ -12,10 +12,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Icons } from '@/components/icons';
-import { addEquipment } from '@/actions/equipment';
 import { Barcode } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import type { Equipment } from '@/lib/types';
+import { useEquipment } from '@/context/EquipmentContext';
 
 
 const formSchema = z.object({
@@ -26,15 +26,11 @@ const formSchema = z.object({
 
 const SCANNER_REGION_ID = 'html5qr-code-full-region';
 
-interface NewEquipmentFormProps {
-  onEquipmentAdded: (equipment: Equipment) => void;
-}
-
-export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormProps) {
+export default function NewEquipmentForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
-  const scannerRef = React.useRef<Html5QrcodeScanner | null>(null);
+  const { addEquipment } = useEquipment();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,7 +41,7 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
     },
   });
 
-  React.useEffect(() => {
+   React.useEffect(() => {
     if (isScannerOpen) {
       const timer = setTimeout(() => {
         const scannerRegion = document.getElementById(SCANNER_REGION_ID);
@@ -54,9 +50,8 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
           return;
         }
 
-        if (scannerRef.current) {
-          return;
-        }
+        // To prevent multiple instances of the scanner
+        if (scannerRegion.childElementCount > 0) return;
 
         import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
           const onScanSuccess = (decodedText: string) => {
@@ -67,74 +62,51 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
             });
             setIsScannerOpen(false);
           };
-
-          const newScanner = new Html5QrcodeScanner(
+          
+          const html5QrcodeScanner = new Html5QrcodeScanner(
             SCANNER_REGION_ID,
             { fps: 10, qrbox: { width: 250, height: 250 } },
-            false
+            /* verbose= */ false
           );
 
-          newScanner.render(onScanSuccess, (error) => {});
-          scannerRef.current = newScanner;
-
+          html5QrcodeScanner.render(onScanSuccess, (error) => {
+             // console.warn(error); // Optional: log errors to console
+          });
+          
         }).catch(err => {
           console.error("Failed to load html5-qrcode library", err);
         });
-      }, 300);
+
+      }, 300); // Delay to allow dialog to render
 
       return () => clearTimeout(timer);
-    } else {
-      if (scannerRef.current) {
-        scannerRef.current.clear().catch(error => {
-          console.error("Failed to clear html5QrcodeScanner.", error);
-        });
-        scannerRef.current = null;
-      }
     }
   }, [isScannerOpen, form, toast]);
 
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    try {
-      const result = await addEquipment(values);
-      if (result.success && result.data) {
-        toast({
-          title: 'Equipo Añadido',
-          description: `Se ha añadido correctamente ${result.data.type}.`,
-        });
-        
-        const newEquipment: Equipment = {
-            id: result.data.id,
-            type: result.data.type,
-            serialNumber: result.data.serialNumber,
-            quantity: result.data.quantity,
-            status: 'available',
-            createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 } 
-        };
-        onEquipmentAdded(newEquipment);
-        form.reset({
-            itemType: '',
-            itemSerialNumber: '',
-            quantity: 1,
-        });
+    
+    const newEquipment: Omit<Equipment, 'id' | 'status' | 'createdAt'> = {
+        type: values.itemType,
+        serialNumber: values.itemSerialNumber,
+        quantity: values.quantity,
+    };
+    
+    addEquipment(newEquipment);
 
-      } else {
-        toast({
-          variant: 'destructive',
-          title: 'Error al Añadir',
-          description: result.error || 'No se pudo añadir el equipo.',
-        });
-      }
-    } catch (error) {
-       toast({
-          variant: 'destructive',
-          title: 'Error Inesperado',
-          description: 'Ocurrió un error al guardar el equipo.',
-        });
-    } finally {
-        setIsSubmitting(false);
-    }
+    toast({
+        title: 'Equipo Añadido',
+        description: `Se ha añadido correctamente ${values.itemType}.`,
+    });
+    
+    form.reset({
+        itemType: '',
+        itemSerialNumber: '',
+        quantity: 1,
+    });
+
+    setIsSubmitting(false);
   };
 
   return (
@@ -175,7 +147,7 @@ export default function NewEquipmentForm({ onEquipmentAdded }: NewEquipmentFormP
                           Apunta la cámara al código de barras o QR para rellenar el número de serie.
                         </DialogDescription>
                       </DialogHeader>
-                      <div id={SCANNER_REGION_ID} className="w-full"/>
+                      <div id={SCANNER_REGION_ID} className="w-full aspect-square"/>
                       <DialogFooter>
                           <DialogClose asChild>
                               <Button type="button" variant="secondary">Cerrar</Button>
