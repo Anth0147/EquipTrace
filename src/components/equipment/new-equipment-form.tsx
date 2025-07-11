@@ -5,9 +5,7 @@ import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-// The type-only import was causing issues with the dynamic import later.
-// It's safer to remove it and let TypeScript infer types or use `any` if needed for robustness.
-// import type { Html5QrcodeScanner, Html5QrcodeError, Html5QrcodeResult } from 'html5-qrcode';
+import type { Html5QrcodeScanner } from 'html5-qrcode';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -34,8 +32,7 @@ export default function NewEquipmentForm() {
   const [generatedTags, setGeneratedTags] = React.useState<string[]>([]);
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
   
-  // Store the scanner instance in a ref to avoid re-creating it
-  const scannerRef = React.useRef<any | null>(null);
+  const scannerRef = React.useRef<Html5QrcodeScanner | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,34 +42,41 @@ export default function NewEquipmentForm() {
     },
   });
   
-  // This effect will run only on the client side
+  const cleanupScanner = React.useCallback(() => {
+    if (scannerRef.current) {
+      scannerRef.current.clear().catch((error) => {
+        // console.error("Failed to clear scanner", error);
+      });
+      scannerRef.current = null;
+    }
+  }, []);
+
   React.useEffect(() => {
     if (isScannerOpen) {
-      // Dynamically import the library only when needed on the client
       import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
-        if (!scannerRef.current && document.getElementById(SCANNER_REGION_ID)) {
-          const scanner = new Html5QrcodeScanner(
-            SCANNER_REGION_ID,
-            { fps: 10, qrbox: { width: 250, height: 250 } },
-            /* verbose= */ false
-          );
+        if (!document.getElementById(SCANNER_REGION_ID)) return;
 
-          const onScanSuccess = (decodedText: string, result: any) => {
-            form.setValue('itemSerialNumber', decodedText);
-            toast({
-              title: 'Código escaneado',
-              description: `Número de serie detectado: ${decodedText}`,
-            });
-            handleCloseScanner();
-          };
+        const scanner = new Html5QrcodeScanner(
+          SCANNER_REGION_ID,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          false
+        );
 
-          const onScanFailure = (error: any) => {
-              // console.warn(`Code scan error = ${error}`);
-          };
+        const onScanSuccess = (decodedText: string) => {
+          form.setValue('itemSerialNumber', decodedText);
+          toast({
+            title: 'Código escaneado',
+            description: `Número de serie detectado: ${decodedText}`,
+          });
+          setIsScannerOpen(false); // Close dialog on success
+        };
 
-          scanner.render(onScanSuccess, onScanFailure);
-          scannerRef.current = scanner;
-        }
+        const onScanFailure = (error: any) => {
+          // Ignore warnings, only log actual errors if needed
+        };
+        
+        scanner.render(onScanSuccess, onScanFailure);
+        scannerRef.current = scanner;
       }).catch(err => {
         console.error("Failed to load html5-qrcode library", err);
         toast({
@@ -81,25 +85,15 @@ export default function NewEquipmentForm() {
           description: 'No se pudo cargar la biblioteca de escaneo.',
         });
       });
+    } else {
+        cleanupScanner();
     }
-
-    // Cleanup function when the component unmounts or scanner closes
+    
     return () => {
-      handleCloseScanner();
+        cleanupScanner();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isScannerOpen]); // Rerun effect when scanner dialog opens
+  }, [isScannerOpen, form, toast, cleanupScanner]);
 
-  const handleCloseScanner = () => {
-    if (scannerRef.current) {
-      scannerRef.current.clear().catch((error: any) => {
-        // This can sometimes fail if the scanner is already gone.
-        // console.error("Failed to clear html5-qrcode-scanner.", error);
-      });
-      scannerRef.current = null;
-    }
-    setIsScannerOpen(false);
-  };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
@@ -164,13 +158,7 @@ export default function NewEquipmentForm() {
               {isSubmitting && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
               Guardar Equipo
             </Button>
-            <Dialog open={isScannerOpen} onOpenChange={(open) => {
-              if (!open) {
-                handleCloseScanner();
-              } else {
-                setIsScannerOpen(true);
-              }
-            }}>
+            <Dialog open={isScannerOpen} onOpenChange={setIsScannerOpen}>
               <Button type="button" variant="outline" onClick={() => setIsScannerOpen(true)}>
                   <Barcode className="mr-2 h-4 w-4" />
                   Escanear Código
@@ -223,5 +211,4 @@ export default function NewEquipmentForm() {
       </div>
     </div>
   );
-
-    
+}
