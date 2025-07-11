@@ -13,14 +13,11 @@ import { Icons } from '@/components/icons';
 import { addEquipment } from '@/actions/equipment';
 import { Badge } from '../ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { Textarea } from '../ui/textarea';
 import { Barcode } from 'lucide-react';
 
 const formSchema = z.object({
-  itemType: z.string().min(2, 'Type must be at least 2 characters.'),
-  itemModel: z.string().min(2, 'Model must be at least 2 characters.'),
-  itemSerialNumber: z.string().min(5, 'Serial number must be at least 5 characters.'),
-  itemDescription: z.string().optional(),
+  itemType: z.string().min(2, 'El tipo debe tener al menos 2 caracteres.'),
+  itemSerialNumber: z.string().min(5, 'El número de serie debe tener al menos 5 caracteres.'),
 });
 
 export default function NewEquipmentForm() {
@@ -32,9 +29,7 @@ export default function NewEquipmentForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       itemType: '',
-      itemModel: '',
       itemSerialNumber: '',
-      itemDescription: '',
     },
   });
 
@@ -49,8 +44,8 @@ export default function NewEquipmentForm() {
 
     if (result.success && result.data) {
       toast({
-        title: 'Equipment Added',
-        description: `Successfully added ${result.data.model}.`,
+        title: 'Equipo Añadido',
+        description: `Se ha añadido correctamente ${result.data.model}.`,
       });
       setGeneratedTags(result.data.tags);
       form.reset();
@@ -58,7 +53,7 @@ export default function NewEquipmentForm() {
       toast({
         variant: 'destructive',
         title: 'Error',
-        description: result.error || 'Failed to add equipment.',
+        description: result.error || 'No se pudo añadir el equipo.',
       });
     }
 
@@ -74,22 +69,9 @@ export default function NewEquipmentForm() {
             name="itemType"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Item Type</FormLabel>
+                <FormLabel>Nombre / Tipo</FormLabel>
                 <FormControl>
-                  <Input placeholder="e.g., Laptop, Server, Monitor" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="itemModel"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Model</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., MacBook Pro 16, Dell XPS 15" {...field} />
+                  <Input placeholder="e.g., Portátil, Servidor, Monitor" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -100,22 +82,9 @@ export default function NewEquipmentForm() {
             name="itemSerialNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Serial Number</FormLabel>
+                <FormLabel>Número de Serie</FormLabel>
                 <FormControl>
-                  <Input placeholder="Enter unique serial number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="itemDescription"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Description (Optional)</FormLabel>
-                <FormControl>
-                  <Textarea placeholder="Any relevant details about the item" {...field} />
+                  <Input placeholder="Introduzca el número de serie único" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -125,11 +94,11 @@ export default function NewEquipmentForm() {
           <div className="flex items-center gap-4">
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-              Save Equipment
+              Guardar Equipo
             </Button>
             <Button type="button" variant="outline" disabled>
                 <Barcode className="mr-2 h-4 w-4" />
-                Scan Barcode
+                Escanear Código
             </Button>
           </div>
         </form>
@@ -137,16 +106,16 @@ export default function NewEquipmentForm() {
       <div className="space-y-6">
         <Card>
             <CardHeader>
-                <CardTitle>AI-Generated Tags</CardTitle>
+                <CardTitle>Etiquetas generadas por IA</CardTitle>
                 <CardDescription>
-                AI will generate descriptive tags here to help you find this item later.
+                La IA generará aquí etiquetas descriptivas para ayudarte a encontrar este artículo más tarde.
                 </CardDescription>
             </CardHeader>
             <CardContent>
                 {isGeneratingTags && (
                     <div className="flex items-center space-x-2 text-muted-foreground">
                         <Icons.spinner className="h-4 w-4 animate-spin"/>
-                        <span>Generating tags...</span>
+                        <span>Generando etiquetas...</span>
                     </div>
                 )}
                 {generatedTags.length > 0 && (
@@ -157,7 +126,7 @@ export default function NewEquipmentForm() {
                 </div>
                 )}
                 {!isGeneratingTags && generatedTags.length === 0 && (
-                    <p className="text-sm text-muted-foreground">Tags will appear here after saving.</p>
+                    <p className="text-sm text-muted-foreground">Las etiquetas aparecerán aquí después de guardar.</p>
                 )}
             </CardContent>
         </Card>

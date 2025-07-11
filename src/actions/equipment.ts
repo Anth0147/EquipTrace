@@ -8,9 +8,7 @@ import { revalidatePath } from 'next/cache';
 
 const AddEquipmentSchema = z.object({
   itemType: z.string().min(2),
-  itemModel: z.string().min(2),
   itemSerialNumber: z.string().min(5),
-  itemDescription: z.string().optional(),
 });
 
 type AddEquipmentInput = z.infer<typeof AddEquipmentSchema>;
@@ -22,15 +20,15 @@ export async function addEquipment(input: AddEquipmentInput) {
       return { success: false, error: 'Invalid input.' };
     }
 
-    const { itemType, itemModel, itemSerialNumber, itemDescription } = validation.data;
+    const { itemType, itemSerialNumber } = validation.data;
 
     // 1. Add base equipment data to Firestore
     const equipmentCollection = collection(db, 'equipment');
     const newEquipmentDocRef = await addDoc(equipmentCollection, {
       type: itemType,
-      model: itemModel,
+      model: '', // Model is no longer provided
       serialNumber: itemSerialNumber,
-      description: itemDescription || '',
+      description: '', // Description is no longer provided
       barcode: '', // Barcode would be added here
       status: 'available',
       tags: [],
@@ -42,9 +40,7 @@ export async function addEquipment(input: AddEquipmentInput) {
     try {
       const aiInput: GenerateItemTagsInput = {
         itemType,
-        itemModel,
         itemSerialNumber,
-        itemDescription,
       };
       const aiOutput: GenerateItemTagsOutput = await generateItemTags(aiInput);
       tags = aiOutput.tags;
@@ -66,7 +62,7 @@ export async function addEquipment(input: AddEquipmentInput) {
       success: true,
       data: {
         id: newEquipmentDocRef.id,
-        model: itemModel,
+        model: itemType, // Return itemType as model for the toast
         tags: tags,
       },
     };

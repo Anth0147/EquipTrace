@@ -1,5 +1,3 @@
-// This file is machine-generated - changes may be lost.
-
 'use server';
 
 /**
@@ -15,9 +13,7 @@ import {z} from 'genkit';
 
 const GenerateItemTagsInputSchema = z.object({
   itemType: z.string().describe('The type of the item (e.g., Laptop, Server, Monitor).'),
-  itemModel: z.string().describe('The model of the item (e.g., MacBook Pro 16, Dell XPS 15).'),
   itemSerialNumber: z.string().describe('The serial number of the item.'),
-  itemDescription: z.string().optional().describe('Optional description of the item.'),
 });
 export type GenerateItemTagsInput = z.infer<typeof GenerateItemTagsInputSchema>;
 
@@ -36,14 +32,12 @@ const prompt = ai.definePrompt({
   output: {schema: GenerateItemTagsOutputSchema},
   prompt: `You are an expert in generating descriptive tags for equipment.
 
-  Based on the item's type, model, serial number, and description (if available), generate a list of descriptive tags that can help identify and categorize the item easily.
+  Based on the item's type and serial number, generate a list of descriptive tags that can help identify and categorize the item easily.
 
   Item Type: {{{itemType}}}
-  Item Model: {{{itemModel}}}
   Item Serial Number: {{{itemSerialNumber}}}
-  Item Description: {{{itemDescription}}}
 
-  Tags:`, // Ensure the LLM outputs tags in a parsable format (e.g., JSON array).
+  Tags:`,
 });
 
 const generateItemTagsFlow = ai.defineFlow(
