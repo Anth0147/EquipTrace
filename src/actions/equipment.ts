@@ -9,7 +9,7 @@ import { revalidatePath } from 'next/cache';
 const AddEquipmentSchema = z.object({
   itemType: z.string().min(2),
   itemSerialNumber: z.string().min(5),
-  quantity: z.number().default(1),
+  quantity: z.coerce.number().min(1).default(1),
 });
 
 type AddEquipmentInput = z.infer<typeof AddEquipmentSchema>;
@@ -30,11 +30,6 @@ export async function addEquipment(input: AddEquipmentInput) {
       quantity: quantity,
       status: 'available',
       createdAt: serverTimestamp(),
-      // Fields no longer used
-      model: '', 
-      description: '',
-      barcode: '',
-      tags: [],
     });
     
     revalidatePath('/dashboard/equipment');
@@ -43,7 +38,7 @@ export async function addEquipment(input: AddEquipmentInput) {
       success: true,
       data: {
         id: newEquipmentDocRef.id,
-        model: itemType,
+        itemType: itemType,
       },
     };
   } catch (error) {

@@ -1,3 +1,4 @@
+
 export interface UserProfile {
   uid: string;
   email: string | null;
@@ -9,10 +10,11 @@ export interface UserProfile {
 export interface Equipment {
   id: string;
   type: string;
-  model: string;
   serialNumber: string;
-  barcode: string;
+  quantity: number;
   status: 'available' | 'assigned' | 'maintenance';
-  tags: string[];
-  createdAt: Date;
+  createdAt: {
+    seconds: number;
+    nanoseconds: number;
+  };
 }
