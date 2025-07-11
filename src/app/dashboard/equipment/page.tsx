@@ -101,11 +101,21 @@ export default function EquipmentPage() {
 
         // Table headers
         let headers = [];
-        if (template === 'delivery') headers = ['Nº', 'Tipo de Equipo', 'Marca / Modelo', 'N° de Serie', 'Cantidad'];
-        if (template === 'return') headers = ['Nº', 'Tipo de Equipo', 'Marca / Modelo', 'N° de Serie', 'Estado', 'Cantidad'];
-        if (template === 'scrap') headers = ['Nº', 'Tipo de Equipo', 'Modelo', 'N° de Serie', 'Motivo de Baja', 'Cantidad'];
+        let colWidths: number[] = [];
+
+        if (template === 'delivery') {
+            headers = ['Nº', 'Tipo de Equipo', 'Marca / Modelo', 'N° de Serie', 'Cantidad'];
+            colWidths = [30, 150, 150, 150, 80];
+        }
+        if (template === 'return') {
+            headers = ['Nº', 'Tipo de Equipo', 'Marca / Modelo', 'N° de Serie', 'Estado', 'Cantidad'];
+            colWidths = [30, 150, 150, 150, 80, 80];
+        }
+        if (template === 'scrap') {
+            headers = ['Nº', 'Tipo de Equipo', 'N° de Serie', 'Cantidad'];
+            colWidths = [30, 200, 200, 80];
+        }
         
-        const colWidths = [30, 150, 150, 150, 80, 80];
         let currentX = margin;
 
         headers.forEach((header, i) => {
@@ -120,16 +130,20 @@ export default function EquipmentPage() {
             currentX = margin;
             drawText((index + 1).toString(), currentX, y); currentX += colWidths[0];
             drawText(item.type, currentX, y); currentX += colWidths[1];
-            drawText('[MODELO]', currentX, y); currentX += colWidths[2]; // Placeholder for model
-            drawText(item.serialNumber, currentX, y); currentX += colWidths[3];
-            
-            if (template === 'return') {
-                drawText('[ESTADO]', currentX, y); currentX += colWidths[4]; // Placeholder for status
+
+            if (template === 'delivery') {
+                drawText('[MODELO]', currentX, y); currentX += colWidths[2];
+                drawText(item.serialNumber, currentX, y); currentX += colWidths[3];
+                drawText(item.quantity.toString(), currentX, y);
+            } else if (template === 'return') {
+                drawText('[MODELO]', currentX, y); currentX += colWidths[2];
+                drawText(item.serialNumber, currentX, y); currentX += colWidths[3];
+                drawText('[ESTADO]', currentX, y); currentX += colWidths[4];
+                drawText(item.quantity.toString(), currentX, y);
+            } else if (template === 'scrap') {
+                drawText(item.serialNumber, currentX, y); currentX += colWidths[2];
+                drawText(item.quantity.toString(), currentX, y);
             }
-            if (template === 'scrap') {
-                drawText('[MOTIVO]', currentX, y); currentX += colWidths[4]; // Placeholder for reason
-            }
-            drawText(item.quantity.toString(), currentX, y);
             
             y -= 20;
         });
@@ -142,26 +156,29 @@ export default function EquipmentPage() {
         y -= 40;
 
         // Signatures
-        const sig1Label = template === 'delivery' || template === 'scrap' ? 'FIRMA DE ENTREGA:' : 'FIRMA DE DEVOLUCIÓN:';
-        const sig2Label = 'FIRMA DE RECEPCIÓN:';
-
-        const sig1Name = template === 'delivery' ? '[NOMBRE_TECNICO]' : template === 'scrap' ? '' : '[NOMBRE_TECNICO]';
-        const sig2Name = template === 'delivery' ? '[NOMBRE_RESPONSABLE]' : template === 'scrap' ? '' : '[RESPONSABLE DE ALMACÉN]';
-
-        const sig1DNI = template === 'delivery' ? 'DNI: [DNI_TECNICO]' : template === 'scrap' ? 'DNI: ' : 'DNI: [DNI_TECNICO]';
-        const sig2DNI = template === 'scrap' ? 'DNI: ' : 'DNI: [DNI_RESPONSABLE]';
-
+        const sig1Label = template === 'delivery' ? 'FIRMA DE RECEPCIÓN:' : template === 'scrap' ? 'FIRMA DE ENTREGA:' : 'FIRMA DE DEVOLUCIÓN:';
+        const sig2Label = template === 'delivery' ? 'FIRMA DE ENTREGA:' : 'FIRMA DE RECEPCIÓN:';
+        
         drawText(sig1Label, margin, y);
         drawText(sig2Label, width / 2 + 20, y);
         y -= 50;
         drawText('_________________________', margin, y);
         drawText('_________________________', width / 2 + 20, y);
         y -= 15;
-        drawText(sig1Name, margin, y);
-        drawText(sig2Name, width / 2 + 20, y);
-        y -= 15;
-        drawText(sig1DNI, margin, y);
-        drawText(sig2DNI, width / 2 + 20, y);
+
+        if (template === 'scrap') {
+            drawText('', margin, y);
+            drawText('', width / 2 + 20, y);
+            y -= 15;
+            drawText('DNI: ', margin, y);
+            drawText('DNI: ', width / 2 + 20, y);
+        } else {
+            drawText('[NOMBRE_TECNICO]', margin, y);
+            drawText('[NOMBRE_RESPONSABLE]', width / 2 + 20, y);
+            y -= 15;
+            drawText('DNI: [DNI_TECNICO]', margin, y);
+            drawText('DNI: [DNI_RESPONSABLE]', width / 2 + 20, y);
+        }
         y -= 25;
         
         drawText(`Fecha y Hora: ${dateTimeStr}`, margin, y);
