@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -222,4 +223,5 @@ export default function NewEquipmentForm() {
       </div>
     </div>
   );
-}
+
+    
