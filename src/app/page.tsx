@@ -132,16 +132,6 @@ export default function LoginPage() {
           </Form>
         </CardContent>
       </Card>
-       <Card className="w-full max-w-sm mt-4">
-        <CardHeader>
-          <CardTitle className="text-lg">Credenciales de Prueba</CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm">
-          <p><span className="font-semibold">Admin:</span> admin@ankae.com</p>
-          <p><span className="font-semibold">Técnico:</span> ab1422@ankae.com</p>
-          <p><span className="font-semibold">Contraseña:</span> pass123</p>
-        </CardContent>
-      </Card>
     </main>
   );
 }
