@@ -5,7 +5,7 @@ import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import type { Html5QrcodeScanner, QrCodeSuccessCallback } from 'html5-qrcode';
+import type { Html5QrcodeScanner } from 'html5-qrcode';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -50,45 +50,46 @@ export default function NewEquipmentForm() {
       return;
     }
 
+    // Retraso para asegurar que el DOM esté listo
     const timer = setTimeout(() => {
-        import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
-            const onScanSuccess: QrCodeSuccessCallback = (decodedText) => {
-                form.setValue('itemSerialNumber', decodedText);
-                toast({
-                    title: 'Código escaneado',
-                    description: `Número de serie detectado: ${decodedText}`,
-                });
-                setIsScannerOpen(false);
-            };
-    
-            const onScanFailure = (error: any) => {
-                // Silenciar errores comunes de 'no se encontró QR'
-            };
+      import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
+        const onScanSuccess = (decodedText: string) => {
+          form.setValue('itemSerialNumber', decodedText);
+          toast({
+            title: 'Código escaneado',
+            description: `Número de serie detectado: ${decodedText}`,
+          });
+          setIsScannerOpen(false);
+        };
 
-            const scannerRegion = document.getElementById(SCANNER_REGION_ID);
-            if (!scannerRegion) {
-                console.error(`Element with id ${SCANNER_REGION_ID} not found.`);
-                return;
-            }
-    
-            const scanner = new Html5QrcodeScanner(
-                SCANNER_REGION_ID,
-                { fps: 10, qrbox: { width: 250, height: 250 } },
-                /* verbose= */ false
-            );
-    
-            scanner.render(onScanSuccess, onScanFailure);
-            scannerRef.current = scanner;
+        const onScanFailure = (error: any) => {
+          // No hacer nada en caso de fallo, para evitar logs innecesarios
+        };
+        
+        const scannerRegion = document.getElementById(SCANNER_REGION_ID);
+        if (!scannerRegion) {
+            console.error(`Element with id ${SCANNER_REGION_ID} not found.`);
+            return;
+        }
 
-        }).catch(err => {
-            console.error("Failed to load html5-qrcode library", err);
-            toast({
-                variant: 'destructive',
-                title: 'Error de Escáner',
-                description: 'No se pudo cargar la biblioteca de escaneo. Por favor, refresca la página.',
-            });
+        const scanner = new Html5QrcodeScanner(
+          SCANNER_REGION_ID,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          false
+        );
+
+        scanner.render(onScanSuccess, onScanFailure);
+        scannerRef.current = scanner;
+
+      }).catch(err => {
+        console.error("Failed to load html5-qrcode library", err);
+        toast({
+          variant: 'destructive',
+          title: 'Error de Escáner',
+          description: 'No se pudo cargar la biblioteca de escaneo. Por favor, refresca la página.',
         });
-    }, 100); // 100ms de retraso
+      });
+    }, 300); // 300ms de retraso
 
     return () => {
       clearTimeout(timer);
@@ -104,25 +105,30 @@ export default function NewEquipmentForm() {
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
-    const result = await addEquipment(values);
-    if (result.success && result.data) {
-      toast({
-        title: 'Equipo Añadido',
-        description: `Se ha añadido correctamente ${result.data.itemType}.`,
-      });
-      form.reset({
-        itemType: '',
-        itemSerialNumber: '',
-        quantity: 1
-      });
-    } else {
-      toast({
-        variant: 'destructive',
-        title: 'Error al Añadir',
-        description: result.error || 'No se pudo añadir el equipo.',
-      });
+    try {
+      const result = await addEquipment(values);
+      if (result.success && result.data) {
+        toast({
+          title: 'Equipo Añadido',
+          description: `Se ha añadido correctamente ${result.data.itemType}.`,
+        });
+        form.reset();
+      } else {
+        toast({
+          variant: 'destructive',
+          title: 'Error al Añadir',
+          description: result.error || 'No se pudo añadir el equipo.',
+        });
+      }
+    } catch (error) {
+       toast({
+          variant: 'destructive',
+          title: 'Error Inesperado',
+          description: 'Ocurrió un error al guardar el equipo.',
+        });
+    } finally {
+        setIsSubmitting(false);
     }
-    setIsSubmitting(false);
   };
 
   return (
@@ -183,7 +189,7 @@ export default function NewEquipmentForm() {
               <FormItem>
                 <FormLabel>Cantidad</FormLabel>
                 <FormControl>
-                  <Input type="number" {...field} onChange={event => field.onChange(+event.target.value)} />
+                  <Input type="number" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
