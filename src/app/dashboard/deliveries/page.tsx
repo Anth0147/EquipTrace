@@ -19,29 +19,29 @@ import { Download } from 'lucide-react';
 
 // Mock Data
 const mockDeliveries = [
-    { id: 'del_1', tech: 'John Doe', items: 2, date: '2024-05-20', status: 'Completed' },
-    { id: 'del_2', tech: 'Jane Smith', items: 1, date: '2024-05-19', status: 'Completed' },
-    { id: 'del_3', tech: 'John Doe', items: 5, date: '2024-05-18', status: 'Completed' },
+    { id: 'del_1', tech: 'John Doe', items: 2, date: '2024-05-20', status: 'Completado' },
+    { id: 'del_2', tech: 'Jane Smith', items: 1, date: '2024-05-19', status: 'Completado' },
+    { id: 'del_3', tech: 'John Doe', items: 5, date: '2024-05-18', status: 'Completado' },
 ]
 
 export default function DeliveriesPage() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Delivery History</CardTitle>
+        <CardTitle>Historial de Entregas</CardTitle>
         <CardDescription>
-          View a log of all past equipment deliveries.
+          Consulta un registro de todas las entregas de equipos anteriores.
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Technician</TableHead>
-              <TableHead>Items</TableHead>
-              <TableHead>Date</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead>Técnico</TableHead>
+              <TableHead>Ítems</TableHead>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Estado</TableHead>
+              <TableHead>Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

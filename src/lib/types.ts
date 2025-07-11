@@ -12,7 +12,7 @@ export interface Equipment {
   type: string;
   serialNumber: string;
   quantity: number;
-  status: 'available' | 'assigned' | 'maintenance';
+  status: 'disponible' | 'asignado' | 'mantenimiento';
   createdAt: {
     seconds: number;
     nanoseconds: number;

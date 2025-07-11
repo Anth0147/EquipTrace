@@ -16,15 +16,15 @@ import { useToast } from '@/hooks/use-toast';
 import { Icons } from '@/components/icons';
 
 const loginSchema = z.object({
-  email: z.string().email({ message: 'Please enter a valid email address.' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters.' }),
+  email: z.string().email({ message: 'Por favor, introduce una dirección de correo válida.' }),
+  password: z.string().min(6, { message: 'La contraseña debe tener al menos 6 caracteres.' }),
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 const testUsers = {
-  'admin@ankae.com': { role: 'admin', name: 'Admin User' },
-  'ab1422@ankae.com': { role: 'technician', name: 'Technician User' },
+  'admin@ankae.com': { role: 'admin', name: 'Usuario Administrador' },
+  'ab1422@ankae.com': { role: 'technician', name: 'Usuario Técnico' },
 };
 
 export default function LoginPage() {
@@ -62,15 +62,15 @@ export default function LoginPage() {
         role: testUserData.role as 'admin' | 'technician',
       });
       toast({
-        title: 'Login Successful',
-        description: "Welcome back! You're being redirected...",
+        title: 'Inicio de Sesión Exitoso',
+        description: "¡Bienvenido de nuevo! Estás siendo redirigido...",
       });
       router.push('/dashboard');
     } else {
        toast({
         variant: 'destructive',
-        title: 'Login Failed',
-        description: 'Invalid credentials. Please try again.',
+        title: 'Fallo en el Inicio de Sesión',
+        description: 'Credenciales inválidas. Por favor, inténtalo de nuevo.',
       });
     }
 
@@ -92,8 +92,8 @@ export default function LoginPage() {
           <div className="flex items-center justify-center mb-4">
             <Icons.truck className="h-8 w-8 text-primary" />
           </div>
-          <CardTitle className="text-2xl text-center">Welcome to EquipTrace</CardTitle>
-          <CardDescription className="text-center">Enter your credentials to access your account</CardDescription>
+          <CardTitle className="text-2xl text-center">Bienvenido a EquipTrace</CardTitle>
+          <CardDescription className="text-center">Introduce tus credenciales para acceder a tu cuenta</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -116,7 +116,7 @@ export default function LoginPage() {
                 name="password"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Contraseña</FormLabel>
                     <FormControl>
                       <Input type="password" placeholder="••••••••" {...field} />
                     </FormControl>
@@ -126,7 +126,7 @@ export default function LoginPage() {
               />
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-                Sign In
+                Iniciar Sesión
               </Button>
             </form>
           </Form>
@@ -134,12 +134,12 @@ export default function LoginPage() {
       </Card>
        <Card className="w-full max-w-sm mt-4">
         <CardHeader>
-          <CardTitle className="text-lg">Test Credentials</CardTitle>
+          <CardTitle className="text-lg">Credenciales de Prueba</CardTitle>
         </CardHeader>
         <CardContent className="text-sm">
           <p><span className="font-semibold">Admin:</span> admin@ankae.com</p>
-          <p><span className="font-semibold">Technician:</span> ab1422@ankae.com</p>
-          <p><span className="font-semibold">Password:</span> pass123</p>
+          <p><span className="font-semibold">Técnico:</span> ab1422@ankae.com</p>
+          <p><span className="font-semibold">Contraseña:</span> pass123</p>
         </CardContent>
       </Card>
     </main>

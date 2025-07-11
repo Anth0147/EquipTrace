@@ -15,9 +15,9 @@ export default function NewEquipmentPage() {
     <div className="mx-auto grid max-w-4xl flex-1 auto-rows-max gap-4">
       <Card>
         <CardHeader>
-          <CardTitle>Register New Equipment</CardTitle>
+          <CardTitle>Registrar Nuevo Equipo</CardTitle>
           <CardDescription>
-            Fill in the details below to add a new item to the inventory.
+            Rellena los detalles a continuación para añadir un nuevo artículo al inventario.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -28,16 +28,16 @@ export default function NewEquipmentPage() {
       {recentlyAdded.length > 0 && (
         <Card>
             <CardHeader>
-                <CardTitle>Recently Added (This Session)</CardTitle>
-                <CardDescription>Items you've added in this session.</CardDescription>
+                <CardTitle>Añadidos Recientemente (Esta Sesión)</CardTitle>
+                <CardDescription>Artículos que has añadido en esta sesión.</CardDescription>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Type</TableHead>
-                            <TableHead>Serial Number</TableHead>
-                            <TableHead>Quantity</TableHead>
+                            <TableHead>Tipo</TableHead>
+                            <TableHead>Número de Serie</TableHead>
+                            <TableHead>Cantidad</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>

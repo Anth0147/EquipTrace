@@ -91,14 +91,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Truck className="h-4 w-4 transition-all group-hover:scale-110" />
               <span className="sr-only">EquipTrace</span>
             </Link>
-            <NavLink href="/dashboard" icon={Home} isCollapsed={isCollapsed}>Dashboard</NavLink>
+            <NavLink href="/dashboard" icon={Home} isCollapsed={isCollapsed}>Panel</NavLink>
             {isAdmin && (
               <>
-                <NavLink href="/dashboard/equipment" icon={Package} isCollapsed={isCollapsed}>Equipment</NavLink>
-                <NavLink href="/dashboard/equipment/new" icon={PackagePlus} isCollapsed={isCollapsed}>Add Item</NavLink>
+                <NavLink href="/dashboard/equipment" icon={Package} isCollapsed={isCollapsed}>Equipos</NavLink>
+                <NavLink href="/dashboard/equipment/new" icon={PackagePlus} isCollapsed={isCollapsed}>Añadir Equipo</NavLink>
               </>
             )}
-            <NavLink href="/dashboard/deliveries" icon={History} isCollapsed={isCollapsed}>Deliveries</NavLink>
+            <NavLink href="/dashboard/deliveries" icon={History} isCollapsed={isCollapsed}>Entregas</NavLink>
           </nav>
           <nav className="mt-auto flex flex-col items-center gap-4 px-2 sm:py-5">
             <TooltipProvider>
@@ -106,10 +106,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 <TooltipTrigger asChild>
                   <button onClick={handleLogout} className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
                     <LogOut className="h-5 w-5" />
-                     {!isCollapsed && <span className="truncate">Logout</span>}
+                     {!isCollapsed && <span className="truncate">Cerrar Sesión</span>}
                   </button>
                 </TooltipTrigger>
-                {isCollapsed && <TooltipContent side="right">Logout</TooltipContent>}
+                {isCollapsed && <TooltipContent side="right">Cerrar Sesión</TooltipContent>}
               </Tooltip>
             </TooltipProvider>
           </nav>
@@ -121,7 +121,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <SheetTrigger asChild>
                 <Button size="icon" variant="outline" className="sm:hidden">
                   <PanelLeft className="h-5 w-5" />
-                  <span className="sr-only">Toggle Menu</span>
+                  <span className="sr-only">Alternar Menú</span>
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="sm:max-w-xs">
@@ -133,24 +133,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       <Truck className="h-5 w-5 transition-all group-hover:scale-110" />
                       <span className="sr-only">EquipTrace</span>
                     </Link>
-                    <Link href="/dashboard" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><Home className="h-5 w-5" />Dashboard</Link>
+                    <Link href="/dashboard" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><Home className="h-5 w-5" />Panel</Link>
                     {isAdmin && (
                       <>
-                      <Link href="/dashboard/equipment" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><Package className="h-5 w-5" />Equipment</Link>
-                      <Link href="/dashboard/equipment/new" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><PackagePlus className="h-5 w-5" />Add Item</Link>
+                      <Link href="/dashboard/equipment" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><Package className="h-5 w-5" />Equipos</Link>
+                      <Link href="/dashboard/equipment/new" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><PackagePlus className="h-5 w-5" />Añadir Equipo</Link>
                       </>
                     )}
-                    <Link href="/dashboard/deliveries" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><History className="h-5 w-5" />Deliveries</Link>
+                    <Link href="/dashboard/deliveries" className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground"><History className="h-5 w-5" />Entregas</Link>
                      <button onClick={handleLogout} className="flex items-center gap-4 px-2.5 text-muted-foreground hover:text-foreground">
                         <LogOut className="h-5 w-5" />
-                        Logout
+                        Cerrar Sesión
                       </button>
                 </nav>
               </SheetContent>
             </Sheet>
             <Button size="icon" variant="outline" className="hidden sm:inline-flex" onClick={() => setIsCollapsed(!isCollapsed)}>
                 <PanelLeft className="h-5 w-5" />
-                <span className="sr-only">Toggle Menu</span>
+                <span className="sr-only">Alternar Menú</span>
             </Button>
 
             <div className="relative ml-auto flex-1 md:grow-0">
@@ -169,10 +169,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{userProfile?.name || userProfile?.email}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-                <DropdownMenuItem disabled>Support</DropdownMenuItem>
+                <DropdownMenuItem disabled>Configuración</DropdownMenuItem>
+                <DropdownMenuItem disabled>Soporte</DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>Cerrar Sesión</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </header>

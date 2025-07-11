@@ -22,7 +22,7 @@ export const EquipmentProvider = ({ children }: { children: ReactNode }) => {
     const newEquipment: Equipment = {
       ...item,
       id: `local-${Date.now()}-${Math.random()}`, // Unique local ID
-      status: 'available',
+      status: 'disponible',
       createdAt: { seconds: Date.now() / 1000, nanoseconds: 0 },
     };
     
@@ -47,7 +47,7 @@ export const EquipmentProvider = ({ children }: { children: ReactNode }) => {
 export const useEquipment = () => {
   const context = useContext(EquipmentContext);
   if (!context) {
-    throw new Error('useEquipment must be used within an EquipmentProvider');
+    throw new Error('useEquipment debe ser usado dentro de un EquipmentProvider');
   }
   return context;
 };

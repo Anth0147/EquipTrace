@@ -48,12 +48,12 @@ export default function EquipmentPage() {
 
     // --- TEMPLATE SPECIFIC LOGIC ---
     if (template === 'blank') {
-      drawText('Equipment List', margin, y, { font: boldFont, size: 18 });
+      drawText('Lista de Equipos', margin, y, { font: boldFont, size: 18 });
       y -= 30;
       // Table Headers
-      drawText('Type', margin, y, { font: boldFont, size: 12 });
-      drawText('Serial Number', 200, y, { font: boldFont, size: 12 });
-      drawText('Quantity', 450, y, { font: boldFont, size: 12 });
+      drawText('Tipo', margin, y, { font: boldFont, size: 12 });
+      drawText('Número de Serie', 200, y, { font: boldFont, size: 12 });
+      drawText('Cantidad', 450, y, { font: boldFont, size: 12 });
       y -= 20;
        page.drawLine({ start: { x: margin, y: y + 10 }, end: { x: width - margin, y: y + 10 }, thickness: 1 });
       // Table Rows
@@ -200,23 +200,23 @@ export default function EquipmentPage() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Equipment</CardTitle>
-          <CardDescription>Manage your inventory and view their status.</CardDescription>
+          <CardTitle>Equipos</CardTitle>
+          <CardDescription>Administra tu inventario y consulta su estado.</CardDescription>
         </div>
         <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" variant="outline" className="h-7 gap-1" disabled={equipmentList.length === 0}>
                   <File className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Export</span>
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">Exportar</span>
                   <ChevronDown className="h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExportPDF('blank')}>Blank List</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportPDF('delivery')}>Delivery to Technician</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportPDF('return')}>Return from Technician</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportPDF('scrap')}>Scrap Equipment</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPDF('blank')}>Lista en Blanco</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPDF('delivery')}>Entrega a Técnico</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPDF('return')}>Devolución de Técnico</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportPDF('scrap')}>Equipos de Chatarra</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -224,7 +224,7 @@ export default function EquipmentPage() {
               <Button size="sm" className="h-7 gap-1">
                 <PlusCircle className="h-3.5 w-3.5" />
                 <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
-                  Add Equipment
+                  Añadir Equipo
                 </span>
               </Button>
             </Link>
@@ -234,9 +234,9 @@ export default function EquipmentPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Type</TableHead>
-              <TableHead>Serial Number</TableHead>
-              <TableHead>Quantity</TableHead>
+              <TableHead>Tipo</TableHead>
+              <TableHead>Número de Serie</TableHead>
+              <TableHead>Cantidad</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -249,7 +249,7 @@ export default function EquipmentPage() {
             ) : equipmentList.length === 0 ? (
                <TableRow>
                 <TableCell colSpan={3} className="h-24 text-center">
-                  No equipment found. Add some in the "Add Item" page.
+                  No se encontraron equipos. Añade algunos en la página "Añadir Equipo".
                 </TableCell>
               </TableRow>
             ) : (
