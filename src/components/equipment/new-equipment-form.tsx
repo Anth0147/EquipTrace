@@ -5,7 +5,7 @@ import * as React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Html5QrcodeScanner } from 'html5-qrcode';
+import type { Html5QrcodeScanner, QrCodeSuccessCallback } from 'html5-qrcode';
 
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -28,6 +28,7 @@ export default function NewEquipmentForm() {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [isScannerOpen, setIsScannerOpen] = React.useState(false);
+  const scannerRef = React.useRef<Html5QrcodeScanner | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -39,44 +40,53 @@ export default function NewEquipmentForm() {
   });
 
   React.useEffect(() => {
-    if (!isScannerOpen) {
+    // Importar dinámicamente la librería solo en el cliente
+    if (!isScannerOpen || scannerRef.current) {
       return;
     }
 
-    // Asegurarse de que el elemento del DOM existe antes de crear el escáner
-    const scannerRegion = document.getElementById(SCANNER_REGION_ID);
-    if (!scannerRegion) {
-        console.error(`Element with id ${SCANNER_REGION_ID} not found.`);
-        return;
-    }
+    // Usar un timeout para asegurar que el DOM del Dialog esté montado
+    const timer = setTimeout(() => {
+        import('html5-qrcode').then(({ Html5QrcodeScanner }) => {
+            const onScanSuccess: QrCodeSuccessCallback = (decodedText) => {
+                form.setValue('itemSerialNumber', decodedText);
+                toast({
+                    title: 'Código escaneado',
+                    description: `Número de serie detectado: ${decodedText}`,
+                });
+                setIsScannerOpen(false);
+            };
+    
+            const onScanFailure = (error: any) => {
+                // Silenciar errores comunes de 'no se encontró QR'
+            };
+    
+            const scanner = new Html5QrcodeScanner(
+                SCANNER_REGION_ID,
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                /* verbose= */ false
+            );
+    
+            scanner.render(onScanSuccess, onScanFailure);
+            scannerRef.current = scanner;
 
-    const html5QrcodeScanner = new Html5QrcodeScanner(
-      SCANNER_REGION_ID,
-      { fps: 10, qrbox: { width: 250, height: 250 } },
-      /* verbose= */ false
-    );
+        }).catch(err => {
+            console.error("Failed to load html5-qrcode library", err);
+            toast({
+                variant: 'destructive',
+                title: 'Error de Escáner',
+                description: 'No se pudo cargar la biblioteca de escaneo. Por favor, refresca la página.',
+            });
+        });
+    }, 100); // 100ms de retraso
 
-    const onScanSuccess = (decodedText: string) => {
-      form.setValue('itemSerialNumber', decodedText);
-      toast({
-        title: 'Código escaneado',
-        description: `Número de serie detectado: ${decodedText}`,
-      });
-      setIsScannerOpen(false); // Cierra el diálogo al escanear
-    };
-
-    const onScanFailure = (error: any) => {
-      // No hacer nada en caso de fallo, para que el usuario pueda seguir intentando
-    };
-
-    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
-
-    // Función de limpieza para detener el escáner
     return () => {
-      if (html5QrcodeScanner && html5QrcodeScanner.getState() !== 2 /* NOT_STARTED */) {
-         html5QrcodeScanner.clear().catch(error => {
-            console.error("Failed to clear html5QrcodeScanner.", error);
-         });
+      clearTimeout(timer);
+      if (scannerRef.current) {
+        scannerRef.current.clear().catch(error => {
+          console.error("Failed to clear html5QrcodeScanner.", error);
+        });
+        scannerRef.current = null;
       }
     };
   }, [isScannerOpen, form, toast]);
